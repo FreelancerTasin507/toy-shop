@@ -25,7 +25,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-// added
+    // added
 
     const categoryCollections = client
       .db("toy-categories")
@@ -33,7 +33,18 @@ async function run() {
     const toyCollection = client.db("toyCollection").collection("Toys");
 
     app.get("/allToys", async (req, res) => {
-      const result = await toyCollection.find().toArray();
+      const sort = req.query.sort;
+      const search = req.query.search;
+      // const query = { };
+      const query = { name: { $regex: search, $options: "i" } };
+      const options = {
+        // sort matched documents in descending order by rating
+        sort: {
+          price: sort === "asc" ? "1" : "-1",
+        },
+      };
+
+      const result = await toyCollection.find(query, options).toArray();
       res.send(result);
     });
 
@@ -102,7 +113,6 @@ async function run() {
       const result = await toyCollection.deleteOne(query);
       res.send(result);
     });
-
 
     app.get("/categories", async (req, res) => {
       const cursor = categoryCollections.find();
